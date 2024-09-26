@@ -1,0 +1,165 @@
+---
+title: "6. Mutação"
+editor_options: 
+  chunk_output_type: console
+---
+
+# Diretório
+
+```{r include = FALSE}
+dir <- "D:/Desktop/UFSC/cursos/ufprr/data"
+knitr::opts_knit$set(root.dir = dir)
+```
+
+
+# Pacotes e dados
+
+```{r warning=FALSE, message=FALSE}
+library(rio)
+library(tidyverse)
+library(metan)
+# set_wd_here("data")
+
+# dados
+maize <- 
+  import("examples_data.xlsx",
+         sheet = "maize",
+         setclass = "tbl")
+
+```
+
+# Geral
+
+![Fonte: https://dplyr.tidyverse.org/index.html](figs/mutate.png)
+
+A função [`mutate()`](https://dplyr.tidyverse.org/reference/mutate.html) é utilizada quando se deseja adicionar novas variáveis no conjunto de dados. Estas variáveis são funções de variáveis existentes. Como exemplo, vamos criar uma nova variável chamada `CD` no conjunto de dados `maize`, qual será a razão entre `CESP` e `DIES`. Note que a função adiciona a nova variável após a última variável origina e mantém todas as demais. Você pode controlar a posição da nova variável criada utilizando os argumentos `.before` e `.after` (assim como na função `relocate()`) e quais variáveis são mantidas utilizando o argumento `.keep`.
+
+```{r}
+# padrão: nova variável inserida na última posição
+maize |>
+  mutate(CD = CESP/DIES)
+
+# posição da nova variável
+maize |> mutate(CD = CESP/DIES, 
+                 .after = DIES)
+
+
+
+```
+
+# Mutação por grupos
+
+[![](figs/group_by.png){fig-alt="Fonte: https://dplyr.tidyverse.org/index.html"}](https://dplyr.tidyverse.org/index.html)
+
+A função `group_by()` pode ser utilizada para realizar mutação dentro de cada nível de uma ou mais variáveis categóricas. Para este exemplo, vamos criar uma variável (rank) que será o rankeamento das observações dentro de cada híbrido com base na MGRA (em ordem decrescente).
+
+```{r}
+hib <- 
+maize |> 
+  group_by(HIB, AMB) |>
+  mutate(rank = rank(desc(MGRA)))
+hib
+
+```
+
+::: callout-tip
+Você pode dizer o que o seguinte código retornará?
+
+```{r eval=FALSE}
+maize |> 
+  group_by(HIB) |> 
+  slice_max(MGRA, n = 2)
+```
+:::
+
+
+{{< video https://www.youtube.com/embed/HEtbubQI4_U >}}
+
+
+
+# Mutação de várias variáveis
+
+![Fonte: https://dplyr.tidyverse.org/reference/across.html](figs/across.png)
+
+Em alguns casos, deseja-se aplicar a mesma função de mutação (ou resumo) à várias variáveis. A função [`across()`](https://dplyr.tidyverse.org/reference/across.html) facilita a aplicação da mesma transformação a várias colunas, permitindo que você use a semântica `select()` dentro de funções como `summarise()` e `mutate()`. Como exemplo de aplicação, vamos criar uma função para rescalar uma variável para uma amplitude 0-1 e aplicar essa função à todas as colunas numéricas do conjunto `maize`.
+
+```{r}
+# função para dividir cada valor por 2
+# intervalo de 0 a 1
+divid2 <- function(x) {
+  x / 2
+}
+
+# aplica a função divid2() a todas as colunas numéricas
+maize |> mutate(across(where(is.numeric), divid2))
+
+# aplica a função divid2() para algumas colunas
+maize |> mutate(across(MGRA:NGRA, divid2, .names = "{.col}_metade"))
+
+
+```
+
+
+{{< video https://www.youtube.com/embed/efPJSOKTvA8 >}}
+
+
+
+# Mutação condicional
+
+É muito comum comum que condicionantes sejam necessárias quando alguma nova variável for criada. Abaixo, um pequeno exemplo contendo notas de 10 alunos é utilizado.
+
+```{r}
+set.seed(5)
+notas <- 
+  data.frame(aluno = paste0("Aluno", 1:10),
+             nota = runif(10, 3, 10) |> round(1))
+notas
+```
+
+Os objetivos aqui são:
+
+1.  Criar uma nova variável em `notas` contendo a classe que tal aluno foi classificado dependendo de sua nota, com as seguintes condições:
+    -   Nota menor que 4: **reprovado**
+    -   Nota de 4 a menos que 7: **exame**
+    -   Nota igual ou maior que 7: **aprovado**
+2.  Ordenar as notas em ordem decrescente (do maior para o menor).
+
+
+`case_when()` pode ser vista como uma versão vetorizada de `ifelse()` que permite que você avalie várias instruções. Se nenhum caso corresponder, `NA` será retornado. Esta função é particularmente útil dentro da função `mutate()` quando você quer criar uma nova variável que depende de uma combinação complexa de variáveis existentes.
+
+A função é baseada em uma sequência de fórmulas de dois lados. O lado esquerdo (LHS) determina o teste; O lado direito (RHS) fornece o valor de substituição.
+
+```{r}
+notas |> 
+  mutate(condicao = case_when(
+    nota < 4 ~ "reprovado",
+    between(nota, 4, 6.99999999) ~ "exame", # mesmo que nota >= 4 & nota < 7
+    TRUE ~ "aprovado" # TRUE: o que não foi incluso nas duas avaliações anteriores
+  )) |> 
+  arrange(desc(nota))
+
+```
+
+Neste exemplo, o conjunto de dados `maize` é utilizado para mostrar como uma variável qualitativa nominal pode ser criada utilizando a função `case_when()`. A nova variável será criada dependendo dos valores de `APLA`, `AIES` ou `CESP`. Ao agrupar pela nova variável categórica criada e utilizar a função `slice_sample()`, um exemplo de cada nível é amostrado aleatoriamente.
+
+```{r}
+set.seed(10)
+
+maize |> 
+  mutate(
+    CASO = case_when(
+      MGRA > 280 | APLA_PLANT < 1.3 | NGRA > 820 ~  "Selecionar",
+      APLA_PLANT > 2.3 ~ "Alto",
+      MGRA < 130 ~ "Pouco produtivo",
+      TRUE ~ "Outro"
+    )
+  ) |> 
+  group_by(CASO) |> 
+  slice_sample(n = 1)
+
+
+```
+
+{{< video https://www.youtube.com/embed/VEz2x7yL2BA >}}
+
+

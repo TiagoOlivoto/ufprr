@@ -1,0 +1,69 @@
+project:
+  type: website
+  # render:
+  #   - "dia_02.qmd"
+
+theme:
+  light: flatly
+  dark: darkly
+
+website:
+  search:
+    location: sidebar
+  title: "R aplicado à Engenharia Florestal"
+  page-footer:
+    border: true
+    background: light
+    left: "R aplicado à Engenharia Florestal"
+    right: "Dr. Tiago Olivoto FIT/CCA/UFSC "
+  page-navigation: true
+  navbar:
+    background: "#0759e8"
+    search: true
+    left:
+      - text: "About"
+        file: 00_about.qmd
+        icon: fa fa-home
+    right:
+      - text: "{{< fa brands researchgate >}}"
+        href: 'https://www.researchgate.net/profile/Tiago-Olivoto'
+      - icon: bi bi-github
+        href: https://github.com/TiagoOlivoto
+      - text: "{{< fa brands linkedin >}}"
+        href: 'https://www.linkedin.com/in/tiago-olivoto-49060531/'
+
+  sidebar:
+    style: "docked"
+    background: light
+    border: true
+    search: true
+    contents:
+        - 01_programacao.qmd
+        - 02_dados.qmd
+        - 03_selecao.qmd
+        - 04_manipulacao.qmd
+        - 05_mutacao.qmd
+        - 06_resumo.qmd
+        - 07_datavis.qmd
+        - 08_pliman.qmd
+
+format:
+  html:
+    theme:
+       light: journal
+       dark: darkly
+    toc: true
+    toc-title: "In this page"
+    number-sections: true
+    number-depth: 3
+    self-contained: true
+    smooth-scroll: true
+    code-fold: false
+    code-tools: true
+    code-block-bg: "#f5f2f2"
+    highlight-style: tango
+    code-block-border-left: "#31BAE9"
+    code-link: true
+
+execute:
+  collapse: true

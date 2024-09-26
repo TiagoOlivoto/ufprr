@@ -1,0 +1,463 @@
+---
+title: "pliman"
+---
+
+```{r include = FALSE}
+# Change this to render in your PC
+dir <- "D:/Desktop/UFSC/cursos/ufprr/pliman"
+knitr::opts_knit$set(root.dir = dir)
+```
+
+
+# Packages and directory
+```{r}
+#| warning: false
+library(pliman)
+library(tidyverse)
+
+# setwd("./imgs")
+# set_wd_here("pliman")
+```
+
+
+## Importar e Exibir
+### Importar Imagens
+```{r }
+img <- image_import("folhas.jpg")
+```
+
+### Exibir de Imagens
+Imagens individuais são exibidas com `plot()`. Para combinar imagens, é usada a função `image_combine()`. Os usuários podem inserir uma lista separada por vírgulas de objetos ou uma lista de objetos da classe Image.
+
+```{r display1}
+#| out-width: "100%"
+# Imagens individuais
+plot(img)
+
+```
+
+
+
+## Exportar
+
+Para exportar imagens para o diretório atual, use a função `image_export()`. Se uma lista de imagens for exportada, as imagens serão salvas considerando o nome e a extensão presentes na lista. Se nenhuma extensão estiver presente, as imagens serão salvas como arquivos `*.jpg`.
+
+```{r export, eval=FALSE}
+image_export(img, "img_exported_tif.tif")
+
+```
+
+
+
+# Princípios da análise de imagens
+A análise de imagens por meio de threshold é uma técnica que envolve a definição de um valor limite (threshold) para a intensidade dos pixels em uma imagem. Essa técnica é usada para segmentar a imagem em duas classes distintas: uma classe representa o que está acima do limite (primeiro plano) e a outra classe representa o que está abaixo do limite (fundo). O processo resulta em uma imagem binária, onde os objetos de interesse são destacados em branco sobre um fundo preto. Essa abordagem é amplamente utilizada em diversas aplicações, como detecção de bordas, identificação de objetos e separação de elementos de interesse em uma imagem, tornando-se uma ferramenta fundamental na análise de imagens digitais.
+
+## Índices de imagem
+
+A função `image_index()` image_index() Constrói índices de imagens usando bandas Red, Green, Blue, Red-Edge e NIR.
+
+```{r}
+#| out-width: "100%"
+
+# Calcule os índices
+indexes <- image_index(img, index = c("R, G, B, GRAY, B-G/(B+G)"))
+
+# Cria um histograma com os valores RGB
+plot(indexes, type = "density")
+```
+
+No caso do índice R, os dois picos representam a folha + a referência (pico menor) e o fundo (pico maior). Quanto mais clara for a diferença entre esses picos, melhor será a segmentação da imagem.
+
+## Imagens binárias
+Para segmentar objetos, o pliman usa a técnica de threshold (Otsu, 1979)^[Otsu, N. 1979. Threshold selection method from gray-level histograms. IEEE Trans Syst Man Cybern SMC-9(1): 62–66. doi: 10.1109/tsmc.1979.4310076.], ou seja, um ponto de corte (considerando os valores dos pixels) é escolhido e a imagem é classificada em duas classes (primeiro plano e fundo). Em seguida, temos uma imagem binária. Podemos produzir essa imagem com `image_binary()`. Essa binarização é o processo-chave para todas as etapas de análise de objetos. Quanto melhor a binarização, melhores serão os resultados.
+
+```{r}
+image_index(img, index = "R")
+#| out-width: "100%"
+image_binary(img,  
+             # threshold = 0.5,
+             index = "R")
+```
+
+
+## Segmentação
+```{r}
+#| out-width: "100%"
+image_segment(img, "R")
+```
+
+
+
+## Análise de objetos
+O segredo é obter o contorno dos objetos, assim, trabalhamos com polígonos!
+
+> Um 'polígono' é uma figura plana descrita por um número finito de segmentos de linha reta conectados para formar uma cadeia poligonal fechada (Singer, 1993)[^1].
+
+[^1]: Singer, M.H. 1993. A general approach to moment calculation for polygons and line segments. Pattern Recognition 26(7): 1019--1028. doi: 10.1016/0031-3203(93)90003-F.
+
+Podemos então concluir que objetos de imagem podem ser expressos como polígonos com `n` vértices. O pliman possui uma família de funções `poly_*()` que podem ser usadas para analisar polígonos.
+
+```{r}
+#| out-width: "100%"
+#| 
+square <- draw_square() |> poly_close()
+poly_area(square)
+poly_perimeter(square)
+
+polygon <- draw_n_tagon(6)
+poly_area(polygon)
+
+n <- c(6, 10, 100, 1000, 100000)
+sapply(n, function(x){
+  draw_n_tagon(x) |> poly_area()
+})
+```
+
+### Contorno
+```{r}
+#| out-width: "100%"
+#| 
+
+# extrair o contorno
+cont <- object_contour(img, index = "R", watershed = FALSE)
+# Número de píxeis do contorno
+nrow(cont[[3]])
+# coordenadas do contorno
+head(cont[[3]])
+# polígono
+plot_polygon(cont[[3]])
+
+```
+
+
+## Medidas
+Na versão atual do `pliman`, você pode calcular as seguintes medidas. Para mais detalhes, ver Chen & Wang (2005)[^2], Claude (2008)[^3] e Montero et al. (2009)[^4].
+
+[^2]: Chen, CH e PSP. Wang. 2005. Manual de reconhecimento de padrões e visão computacional. 3ª edição. Científico Mundial.
+
+[^3]: Claude, J. 2008. Morfometria com R. Springer.
+
+[^4]: Montero, RS, E. Bribiesca, R. Santiago e E. Bribiesca. 2009. Estado da Arte em Medidas de Compacidade e Circularidade. Fórum Internacional de Matemática 4(27): 1305--1335.
+
+## Área 
+
+A área de uma forma é calculada usando a fórmula de Shoelace (Lee e Lim, 2017)[^5], como segue
+
+$$
+A=\frac{1}{2}\left |\sum_{i=1}^{n}\left(x_{i} y_{i+1}-x_{i+1}y_{i}\right)\right|
+$$
+
+[^5]: Lee, Y., and W. Lim. 2017. Shoelace Formula: Connecting the Area of a Polygon and the Vector Cross Product. The Mathematics Teacher 110(8): 631--636. doi: 10.5951/MATHTEACHER.110.8.0631.
+
+
+
+```{r}
+poly_area(cont)
+```
+
+## Perímetro
+
+O perímetro é calculado como a soma da distância euclidiana entre todos os pontos de uma forma. As distâncias podem ser obtidas com `poly_distpts()`.
+
+```{r}
+poly_perimeter(cont)
+
+#perímetro de um círculo com raio 2
+circulo <- draw_circle(radius = 2, plot = FALSE)
+poly_perimeter(circulo)
+
+#verifique o resultado
+2*pi*2
+
+```
+
+
+## Centro de massa
+
+O centro de massa de uma forma, especialmente no espaço bidimensional, representa a posição média de todos os pontos dentro dessa forma, ponderados por sua área (ou massa, se considerarmos objetos físicos). É o ponto em que toda a área (ou massa) da forma pode ser considerada concentrada. Em termos práticos, se você fosse equilibrar um recorte da forma em um ponto específico, o centro de massa seria o local onde ele se equilibraria perfeitamente.
+
+Em um polígono (uma forma feita de segmentos de linha reta), o centro de massa é calculado considerando a contribuição de cada segmento para a forma geral, e suas coordenadas ($C_x$ e $C_y$) são dadas por
+
+$$
+\begin{aligned}
+C_x & =\frac{1}{6 A} \sum_{i=1}^n\left(x_i+x_{i+1}\right)\left(x_i y_{i+1}-x_{i+1} y_i\right) \\
+C_y & =\frac{1}{6 A} \sum_{i=1}^n\left(y_i+y_{i+1}\right)\left(x_i y_{i+1}-x_{i+1} y_i\right)
+\end{aligned}
+$$
+Onde A, é a área dada acima
+
+```{r}
+plot_polygon(cont[[4]])
+
+# centroid
+cent <- apply(cont[[4]], 2, mean)
+points(cent[1], cent[2], col = "red", pch = 19)  # Red dot for centroid
+
+# Center of mass
+cm <- poly_mass(cont[[4]])
+points(cm[1], cm[2], col = "blue", pch = 19)  # Blue dot for center of mass
+legend("topright",
+       legend = c("Centróide", "Centro de massa"), 
+       col = c("red", "blue"), pch = 19)
+```
+
+
+```{r}
+dist <- poly_centdist_mass(cont[[4]])
+x <- c(cm[1], cont[[4]][1, 1])
+y <- c(cm[2], cont[[4]][1, 2])
+d1 <- sqrt(diff(x)^2 + diff(y)^2)
+dist[[1]]
+
+plot_polygon(cont[[4]])
+points(cm[1], cm[2], col = "blue", pch = 19)  # Blue dot for center of mass
+segments(x[1], y[1], x[2], y[2], col = "blue", lwd = 2)
+
+plot(dist, type = "l")
+
+```
+
+
+## Comprimento e largura
+
+O comprimento e a largura de um objeto são calculados com `poly_lw()`, como a diferença entre o máximo e o mínimo das coordenadas `x` e `y` após o objeto ter sido alinhado com `poly_align()`.
+
+```{r fig.altura =2, fig.largura=10}
+# wrong measures
+plot_polygon(cont[[4]])
+lw <- apply(cont[[4]], 2, \(x){range(x)})
+abline(v = lw[[1]], col = "red")
+abline(v = lw[[2]], col = "red")
+abline(h = lw[[3]], col = "blue")
+abline(h = lw[[4]], col = "blue")
+
+
+# Correct measures
+aligned <- poly_align(cont[[4]])
+lw <- apply(aligned, 2, \(x){range(x)})
+abline(v = lw[[1]], col = "red")
+abline(v = lw[[2]], col = "red")
+abline(h = lw[[3]], col = "blue")
+abline(h = lw[[4]], col = "blue")
+diff(lw)
+
+# with poly_lw()
+poly_lw(cont[[4]])
+```
+
+
+## Complexidade do perímetro (PVC)
+O PCV é calculado primeiro suavizando o contorno de entrada usando um número especificado de iterações. O contorno suavizado é então usado para calcular as distâncias entre os pontos correspondentes nas coordenadas original e suavizada. Estas distâncias refletem as variações na forma do contorno após a suavização. A soma dessas distâncias representa a magnitude global das variações. A seguir, a soma das distâncias é multiplicada pelo desvio padrão das distâncias para capturar a dispersão ou propagação das variações.
+
+Finalmente, este valor é dividido pelo comprimento do perímetro do contorno original para fornecer uma medida relativa de complexidade. Portanto, o PCV fornece uma medida relativa de complexidade, considerando tanto a magnitude quanto a dispersão das variações na forma do contorno após a suavização.
+
+```{r}
+set.seed(1)
+plot_polygon(cont)
+poly_pcv(cont)
+```
+
+
+# Função analyze_objects
+```{r}
+#| eval: false
+res <- 
+  analyze_objects(pattern = "E",
+                  index = "B",
+                  watershed = FALSE,
+                  plot = FALSE,
+                  verbose = FALSE,
+                  pcv = TRUE)
+med <- get_measures(res)
+med$results |> 
+  round_cols(digits = 2) |> 
+  print() |> 
+  knitr::kable()
+```
+
+# Correção de medidas
+```{r}
+# análise da imagem 
+res <- 
+  analyze_objects(pattern = "G",
+                  reference = TRUE,
+                  reference_area = 20,
+                  back_fore_index = "R/(G/B)",
+                  fore_ref_index = "B-R",
+                  watershed = FALSE)
+plot(res)
+```
+
+
+
+
+# Sensoriamento remoto
+
+Objetos de ortomosaico (`SpatRasters`) podem ser importados e exportados usando as funções fornecidas pelo pacote. Primeiro, uma imagem de ortomosaico é importada como um objeto `SpatRaster` usando a função `mosaic_input()`. A imagem pode então ser visualizada no formato RGB usando a função `mosaic_plot_rgb()`. Para mapeamento interativo, a função `mosaic_view()` pode ser usada, especificando as bandas RGB (por exemplo, R = 3, G = 2, B = 1) para ajustar a exibição do mapa. Além disso, o ortomosaico pode ser exportado para um arquivo usando a função `mosaic_export()`.
+
+```{r}
+# Importar uma imagem de ortomosaico como um objeto SpatRaster
+mosaic <- mosaic_input("orthomosaicos/ortho.tif")
+
+# Plotar o mosaico importado em RGB
+mosaic_plot_rgb(mosaic)
+# Criar um mapa interativo usando as bandas RGB (R = 3, G = 2, B = 1)
+bm <- mosaic_view(mosaic, 
+                  r = 3, # Canal vermelho
+                  g = 2, # Canal verde
+                  b = 1) # Canal azul
+
+# Exportar o mosaico para um arquivo (descomente a linha abaixo para rodar)
+# mosaic_export(mosaic, "my_mosaic.tif")
+```
+
+## Shapefile
+
+### Criar
+
+Para criar uma grade shapefile sobre o mosaico, a função `shapefile_build()` é usada, especificando o número de linhas e colunas para a grade. Isso permite a segmentação do mosaico em parcelas que podem ser analisadas individualmente.
+
+```{r}
+#| eval: false
+
+# Criar uma grade shapefile sobre o mosaico com linhas e colunas especificadas
+shp <- shapefile_build(mosaic,
+                       ncol = 4, # Número de colunas
+                       nrow = 10) # Número de linhas
+```
+
+### Importar e Exportar
+
+Os shapefiles podem ser importados usando a função `shapefile_input()`, que lê objetos shapefile de um arquivo. Após a importação do shapefile, o mosaico pode ser plotado em RGB usando `mosaic_plot_rgb()`, e o shapefile pode ser sobreposto ao mosaico usando a função `shapefile_plot()`, que permite a personalização da largura da linha e outros parâmetros gráficos.
+
+```{r}
+# Importar um objeto shapefile de um arquivo
+shp <- shapefile_input("orthomosaicos/shp_dsm.rds")
+
+# Plotar o mosaico em RGB
+mosaic_plot_rgb(mosaic)
+
+# Sobrepor o shapefile importado ao mosaico com largura de linha personalizada
+shapefile_plot(shp, add = TRUE, lwd = 2)
+```
+
+## Índices de Vegetação
+
+Uma variedade de índices de vegetação estão disponíveis no pliman, como detalhado no site de Tiago Olivoto. Esses índices podem ser calculados usando a função `mosaic_index()`. Especificando os canais RGB do mosaico (por exemplo, R = 1, G = 2, B = 3) e selecionando os índices desejados (por exemplo, "NGRDI" e "GLI"), a função calcula os índices, que podem ser usados para análises posteriores.
+
+```{r}
+# Calcular índices de vegetação (por exemplo, NGRDI e GLI) usando os canais RGB do mosaico
+ind <- mosaic_index(mosaic, 
+                    r = 1, # Canal vermelho
+                    g = 2, # Canal verde
+                    b = 3, # Canal azul
+                    index = c("NGRDI", "GLI")) # Lista de índices de vegetação a calcular
+```
+
+## Extrair Índices de Vegetação para Cada Parcela
+
+Os valores dos índices de vegetação podem ser extraídos para cada parcela definida por um shapefile usando a função `mosaic_extract()`. Esta função resume os valores dos índices de vegetação para cada parcela usando uma estatística de resumo especificada, como a mediana. Os resultados fornecem uma avaliação quantitativa das características de vegetação para cada parcela no mosaico.
+
+```{r}
+# Extrair valores de índices de vegetação para cada parcela no shapefile
+# Usando o valor mediano como estatística de resumo
+vals <- 
+  mosaic_extract(ind,
+                 shapefile = shp,
+                 fun = "median", # Função de resumo (por exemplo, mediana)
+                 progress = FALSE) # Desativar barra de progresso
+
+# Note que os valores são medianos para a parcela inteira
+head(vals)
+```
+
+## A Função `mosaic_analyze()`
+
+A função `mosaic_analyze()` realiza uma análise abrangente do mosaico usando o shapefile definido e os índices de vegetação selecionados. Ela integra várias etapas, incluindo o cálculo de índices de vegetação para cada parcela, o resumo dos resultados usando estatísticas especificadas (por exemplo, mediana, média), e opcionalmente segmentando parcelas para mascarar áreas não vegetadas, como solo. A função também pode criar mapas que exibem a distribuição espacial de um atributo escolhido, como um índice de vegetação, usando uma escala de cores.
+
+```{r}
+# Analisar o mosaico usando o shapefile definido e índices de vegetação
+res <- 
+  mosaic_analyze(mosaic,
+                 basemap = bm,                      # Mapa base para visualização
+                 shapefile = shp,                   # Shapefile com parcelas
+                 plot_index = c("NGRDI", "GLI"),    # Índices de vegetação a calcular
+                 summarize_fun = c("median", "mean"), # Estatísticas de resumo para cada parcela
+                 segment_plot = TRUE,               # Habilitar segmentação de parcela (por exemplo, mascarar solo)
+                 attribute = "median.NGRDI")        # Atributo para mapeamento (por exemplo, escala de cores NGRDI)
+# Exibir o gráfico de resultado
+res$result_plot
+```
+
+### Índice de Vegetação
+
+Os resultados da função `mosaic_analyze()` incluem um mapa que visualiza os índices de vegetação calculados, permitindo uma fácil interpretação dos padrões espaciais dentro do mosaico.
+
+```{r}
+# Exibir o mapa com índices de vegetação
+res$map_plot
+```
+
+### Cobertura de Dossel
+
+As informações de cobertura de dossel podem ser visualizadas no mapa interativo adicionando o atributo de cobertura dos resultados da análise. Isso fornece uma representação visual da extensão e distribuição da cobertura do dossel dentro da área de estudo, aprimorando a compreensão da dinâmica da vegetação através do mosaico.
+
+```{r}
+# Adicionar atributo de cobertura de dossel ao mapa interativo
+bm + shapefile_view(res$result_plot, attribute = "coverage")
+```
+
+## Modelos Digitais de Superfície e Terreno
+
+Para calcular a altura das plantas usando Modelos Digitais de Superfície (DSM) e Modelos Digitais de Terreno (DTM), siga estas etapas. O DSM representa a elevação das superfícies superiores de objetos, incluindo vegetação, edifícios e outras estruturas, enquanto o DTM representa a superfície do solo nu sem quaisquer objetos. A altura das plantas pode ser calculada subtraindo o DTM do DSM, o que fornece a altura da vegetação acima do solo.
+
+```{r}
+
+dsm <- mosaic_input("orthomosaicos/dsm_soy.tif")
+mosaic_plot(dsm)
+dtm <- mosaic_input("orthomosaicos/dtm_soy.tif")
+mosaic_plot(dtm)
+mask <- mosaic_input("orthomosaicos/mask_dsm_soy.tif")
+mosaic_plot(mask)
+```
+
+## Modelo de Altura de Dossel
+```{r}
+chm <- mosaic_chm(dsm = dsm, 
+                  dtm = dtm,
+                  mask = mask,
+                  mask_soil = FALSE)
+mosaic_plot(chm$chm)
+
+# extrair os valores
+ph <- mosaic_chm_extract(chm, shp)
+ph
+# altura da planta 
+bm + shapefile_view(ph, attribute = "q90")
+```
+
+
+## Um exemplo florestal
+```{r}
+mosaic <- mosaic_input("orthomosaicos/trees.tif")
+shp <- shapefile_input("orthomosaicos/shape_trees.rds")
+bm <- mosaic_view(mosaic,
+                  r = 3,
+                  g = 2,
+                  b = 1,
+                  max_pixels = 4e6)
+
+inventario <- 
+  mosaic_analyze(mosaic,
+                 r = 3,
+                 nir = 5,
+                 shapefile = shp,
+                 basemap = bm,
+                 plot_index = "NDVI",
+                 threshold = 0.7,
+                 opening = 7,
+                 filter = 3,
+                 segment_individuals = TRUE)
+inventario$map_indiv
+```
+

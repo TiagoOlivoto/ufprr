@@ -1,0 +1,263 @@
+---
+title: "5. Manipulação de Dados"
+editor_options: 
+  chunk_output_type: console
+---
+
+# Diretório
+
+```{r include = FALSE}
+dir <- "D:/Desktop/UFSC/cursos/ufprr/data"
+knitr::opts_knit$set(root.dir = dir)
+```
+
+
+# Pacotes e dados
+
+```{r warning=FALSE, message=FALSE}
+library(rio)
+library(tidyverse)
+library(metan)
+# set_wd_here("data")
+```
+
+# Girar
+
+Geralmente, os dados são organizados para facilitar algum uso que não seja a análise. Por exemplo, os dados geralmente são organizados para facilitar ao máximo a coleta. Isso significa que, para a maioria das análises, os dados não estarão em um formato *tidy* e você precisará fazer algumas transformações morfológicas. O primeiro passo é sempre descobrir quais são as variáveis a serem transformadas. O segundo passo é resolver um dos dois problemas mais comuns:
+
+-   Uma variável pode estar espalhada por várias colunas.
+-   Uma observação pode estar espalhada por várias linhas.
+
+Note o exemplo abaixo.
+
+![Exemplo de dados em um formato "wide"](figs/feijao.png)
+
+No caso acima, a altura de planta de plantas de feijão foi mensurada em cinco plantas de cada bloco de três diferentes tratamentos. Então, cada tratamento conterá 15 valores. Note que as medições de cada planta estão dispostas em cinco diferentes colunas (P1 a P5). Então, a variável altura de planta está *espalhada* por várias colunas. Para corrigir esse problema e o problema de uma observação estar espalhada por várias linhas, utilizaremos duas das mais importantes do pacote `tidyr`: `pivot_longer()` e `pivot_wider()`.
+
+## Longer
+
+```{r}
+(df_wide <- import("examples_data.xlsx", sheet = "feijao"))
+```
+
+Para organizar um conjunto de dados como esse, precisamos dinamizar as colunas problemáticas em duas novas colunas (variável e valor) utilizando a função `pivot_longer()`.
+
+[![Exemplo da função pivot_longer(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf](figs/pivot_longer.png)](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf)
+
+Para realizar essa operação, precisamos de três parâmetros (além do conjunto de dados)
+
+-   `cols`: o conjunto de colunas cujos nomes são valores, não variáveis. Neste exemplo, essas são as colunas P1, P2, P3, P4 e P5.
+-   `names_to`: O nome da variável para a qual mover os nomes das colunas. Aqui será `"PLANTA"`.
+-   `values_to`: O nome da variável para a qual mover os valores da coluna. Aqui será `"ALTURA"`.
+
+```{r}
+long <- 
+  pivot_longer(df_wide,
+               cols = P1:P5,
+               names_to = "PLANTA",
+               values_to = "AP")
+long
+```
+
+Após a modificação, as colunas são descartadas e obtemos as colunas de planta e altura. Assim, vemos que `pivot_longer()` torna os conjuntos de dados mais longos aumentando o número de linhas e diminuindo o número de colunas.
+
+{{< video https://www.youtube.com/embed/4KwZeQe6JOc >}}
+
+
+## Wider
+
+Uma outra forma comum de dados que não seguem o formato *tidy* é quando observações estão espalhadas por várias linhas. Observe os dados abaixo.
+
+```{r}
+(dflong <- import("examples_data.xlsx", sheet = "df2"))
+```
+
+Neste caso, duas variáveis (ALT_PLANT e ALT_ESP) estão espalhadas pelas linhas. Para lidar com esse problema, utilizamos a função `pivot_wider()` que é o oposto de `pivot_longer().`
+
+[![Exemplo da função pivot_wider(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf](figs/pivot_wider.png){alt="Exemplo da função pivot_longer(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf"}](Fonte:%20https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf)
+
+Para arrumarmos os dados em `dflong` utilizamos `pivot_wider()` de maneira similar à `pivot_longer()`. Desta vez, no entanto, precisamos apenas de dois parâmetros:
+
+-   `names_from`: A coluna da qual obter nomes de variáveis. Aqui, é `"VARIAVEL"`.
+-   `values_from`: A coluna da qual obter valores. Aqui é `"VALOR"`.
+
+```{r}
+wider <- 
+   dflong |> 
+     pivot_wider(names_from = VARIAVEL,
+                 values_from = VALOR)
+wider
+
+```
+
+
+
+{{< video https://www.youtube.com/embed/UFtEb4BIWno >}}
+
+
+# Separar
+
+Até agora você aprendeu como realizar operações morfológicas para transformar dados em de formato *wide* para *long* e vice-versa. O seguinte conjunto de dados tem um problema diferente:
+
+```{r}
+(ex_separate <- import("examples_data.xlsx", sheet = "df5"))
+```
+
+Observe que a coluna temos uma coluna (RELACAO) contém duas variáveis (ALT_ESP e ALT_PLANT). Para corrigir esse problema, precisaremos da função `separate()`.
+
+[![Exemplo da função separate(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf](figs/separate.png){alt="Exemplo da função pivot_longer(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf"}](Fonte:%20https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf)
+
+Por padrão, `separate()` dividirá valores onde quer que veja um caractere não alfanumérico. Você também pode explicitar um separador para as colunas. Note o que acontece abaixo.
+
+```{r}
+# por padrão, separa no primeiro caractere alfanumérico (.)
+ex_separate |> 
+  separate_wider_delim(RELACAO, names = c("AESP", "APLA"), delim = "/")
+
+
+```
+
+
+# Concatenar
+
+Quem trabalha com excel muito provavelmente já utilizou a função `=CONCAT`, que concatena valores de múltiplas colunas em uma única coluna. Aqui, a função `unite()`, pode ser utilizada para este fim. Ela é o inverso da `separate()`.
+
+[![Exemplo da função unite(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf](figs/unite.png){alt="Exemplo da função pivot_longer(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf"}](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf)
+
+Vamos considerar que queiramos unir as colunas HIBRIDO e BLOCO do conjunto `dflong` em uma única coluna, chamada NÍVEL. Esta união é dada por
+
+```{r}
+dflong |> 
+  unite(HIBRIDO, BLOCO, col = "NIVEL") |> 
+  separate(NIVEL, into = c("HIBRIDO", "BLOCO")) |> 
+  head()
+
+dflong |> 
+  unite("NIVEL", HIBRIDO:BLOCO) |> 
+  head()
+
+```
+
+
+{{< video https://www.youtube.com/embed/paVd6eGsfRg >}}
+
+
+# Renomear (Homework)
+
+Algumas vezes necessitamos renomear as variáveis em nosso conjunto de dados. Seria trabalhoso mudar o nome da coluna nos dados externos e importa-los novamente. Vamos considerar os dados em `long` e renomear a coluna `UE > PARCELA` e `BLOCO > REP`. Aqui, algumas alternativas são apresentadas.
+
+## R base
+
+```{r}
+long1 <- long
+names(long1)[c(1, 2)] <- c("PARCELA", "REP")
+names(long1)
+```
+
+## dplyr `rename()`
+
+A função `rename()` do pacote `dplyr` altera os nomes de variáveis individuais usando a sintaxe `nome_novo = nome_antigo`.
+
+```{r}
+rename(long,
+       PARCELA = UE,
+       REP = BLOCO) |> 
+  names()
+```
+
+## dplyr `rename_with()`
+
+Uma outra alternativa é `rename_with()`, que renomeia colunas usando uma função.
+
+```{r}
+rename_with(long, tolower) |> names()
+```
+
+## metan `add_prefix()` e `add_suffix()`
+
+Prefixos e sufixos são extremamente úteis na manipulação de dados, pois permitem que [select helpers](https://tidyselect.r-lib.org/reference/language.html) possam ser utilizados na seleção de variáveis, que será visto no próximo tópico. Aqui, vamos ver como prefixos e sufixos podem ser adicionados à nomes das variáveis.
+
+```{r}
+long |> 
+  add_prefix(UE:PLANTA, prefix = "Fct") |> 
+  names()
+
+# utilizando select helper
+long |> 
+  add_suffix(starts_with("A"), suffix = "a") |> 
+  select(contains("_a")) |> 
+  names()
+
+```
+
+
+{{< video https://www.youtube.com/embed/j4knVncyUIE >}}
+
+
+
+
+
+# Juntar
+
+É raro que uma análise de dados envolva apenas uma única tabela de dados. Na prática, diversas tabela podem existir e ferramentas flexíveis para combiná-las são necessárias. No `dplyr`, existem uma família de funções do tipo `*_join(x, y)` que podem ser utilizadas para unir colunas de `y` a `x`, combinando linhas com base nas chaves:
+
+## Junções com mutação
+
+-   `left_join()`: inclui todas as linhas em `x`.
+-   `right_join()`: inclui todas as linhas em `y`.
+-   `inner_join()`: inclui todas as linhas em `x` e `y`.
+-   `full_join()`: inclui todas as linhas em `x` ou `y`.
+
+Se uma linha em `x` corresponder a várias linhas em `y`, todas as linhas em `y` serão retornadas uma vez para cada linha correspondente em `x`.
+
+[![Fonte: https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf](figs/mutate_join.png)](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
+
+Vamos à um exemplo prático!
+
+```{r}
+(df1 <- import("joins.xlsx", sheet = "left"))
+(df2 <- import("joins.xlsx", sheet = "right"))
+
+
+```
+
+```{r}
+# todas as linhas de df1
+df1 |> left_join(df2)
+
+# todas as linhas de df2
+df1 |> right_join(df2)
+
+# todas as linhas de df1 e df2
+df1 |> inner_join(df2)
+
+# todas as linhas de df1 ou df2
+df1 |> full_join(df2)
+
+```
+
+
+{{< video https://www.youtube.com/embed/KpvsyMORq6w >}}
+
+
+
+# Avançado
+## Junções com filtragem 
+
+As duas seguintes funções de filtragem filtram linhas de `x` com base na presença ou ausência de correspondências em `y`:
+
+-   `semi_join()` retorna todas as linhas de `x` **com** uma correspondência em `y`.
+-   `anti_join()` retorna todas as linhas de `x` **sem** uma correspondência em `y`.
+
+[![Fonte: https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf](figs/filter_join.png){alt="Fonte: https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf"}](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
+
+```{r}
+# linhas de df1 que estão em df2
+df1 |> semi_join(df2)
+
+# linhas de df1 que NÃO estão em df2
+df1 |> anti_join(df2)
+```
+
+
+

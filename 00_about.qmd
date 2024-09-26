@@ -1,0 +1,79 @@
+---
+title: "Informações Úteis!"
+---
+
+Este material contém os scripts e dados necessários para reproduzir os exemplos vistos no minicurso **Linguagem R aplicada à Engenharia Florestal**
+
+![](figs/logo.jpeg)
+
+# Software
+
+Para reproduzir os exemplos deste material, você precisará do software R e RStudio (Português).
+
+{{< video https://www.youtube.com/embed/e89kyYJgWqc >}}
+
+<a class="btn btn-success" href="https://cran.r-project.org/bin/windows/base/" target="_blank"><i class="fa fa-save"></i> Baixar R</a>
+
+<a class="btn btn-success" href="https://www.rstudio.com/products/rstudio/download/" target="_blank"><i class="fa fa-save"></i> Baixar RStudio</a>
+
+# Instalação de pacotes
+
+```{r}
+#| eval: false
+
+install.packages("tidyverse")
+install.packages("purrr")
+install.packages("rio")
+install.packages("DataExplorer")
+install.packages("rnaturalearth")
+install.packages("geobr")
+install.packages("pak")
+
+```
+
+Instale também as versões de desenvolvimento de [pliman](https://github.com/NEPEM-UFSC/pliman) e [plimanshiny](https://github.com/NEPEM-UFSC/plimanshiny).
+
+```{r, eval = FALSE}
+
+pak::pkg_install("NEPEM-UFSC/pliman")
+pak::pkg_install("NEPEM-UFSC/plimanshiny")
+```
+
+*Nota*: Se você for usuário do Windows, é sugerido primeiro baixar e instalar a versão mais recente do [Rtools](https://cran.r-project.org/bin/windows/Rtools/). Para as notas de lançamento mais recentes desta versão em desenvolvimento, veja o [arquivo de notícias](https://tiagoolivoto.github.io/pliman/news/index.html).
+
+{{< video https://www.youtube.com/embed/8B8QDZnDhtY >}}
+
+# Scripts e orientações
+
+O arquivo .zip contém uma pasta com o site estático, estruturado da seguinte forma:
+
+```{r echo=FALSE}
+library(fs)
+fs::dir_tree("D:/Desktop/UFSC/cursos/ufprr", recurse = 1)
+```
+
+
+O material em HTML (\_site/index.html) dará acesso ao site, onde você poderá ver todos os exemplos, com códigos e saídas. Para reproduzir o material, basta usar os arquivos \*.qmd.
+
+Para a reprodução, sugere-se definir a pasta `ufprr` como o diretório padrão. Você pode facilmente definir o diretório executando o seguinte comando, assumindo que o script `00_about.qmd` esteja aberto.
+
+```{r eval=FALSE}
+pliman::set_wd_here()
+```
+
+# Licença
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/TiagoOlivoto/tiagoolivoto/master/static/img/gemsr/license.jpg" alt="Licença Creative Commons" style="border-width:0" width="150" height="40"/></a><br />Este conteúdo está licenciado sob uma <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. O resumo legível da licença afirma que você tem o direito de:
+
+-   **Compartilhar** — copiar e redistribuir o material em qualquer meio ou formato.
+-   **Adaptar** — remixar, transformar e construir em cima do material.
+
+**Atribuição** — Você deve dar o crédito apropriado, fornecer um link para a licença e indicar se foram feitas alterações. Você pode fazê-lo de qualquer maneira razoável, mas não de forma que sugira que o licenciador apoia você ou seu uso.
+
+Sob os seguintes termos:
+
+**Não Comercial** — Você não pode usar o material para fins comerciais.
+
+**Compartilhamento pela mesma licença** — Se você remixar, transformar ou construir em cima do material, você deve distribuir suas contribuições sob a mesma licença que o original.
+
+**Sem restrições adicionais** — Você não pode aplicar termos legais ou medidas tecnológicas que restrinjam legalmente outros de fazerem qualquer coisa que a licença permita.
