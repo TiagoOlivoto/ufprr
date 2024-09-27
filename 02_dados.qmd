@@ -38,7 +38,6 @@ O pacote [`rio`](https://cran.r-project.org/web/packages/rio/index.html) é um p
 df_excel <- import("df_excel.xlsx")
 df_excel
 
-
 ```
 
 ### Vários arquivos
@@ -169,7 +168,3 @@ A função `fill()` do pacote `tidyr` pode ser utilizada para preencher valores 
 ```
 
 {{< video https://www.youtube.com/embed/22n7aZjK-Vw >}}
-```{=html}
-
-<div align='center'><a href='https://www.free-website-hit-counter.com'><img src='https://www.free-website-hit-counter.com/c.php?d=9&id=141635&s=2' border='0' alt='Free Website Hit Counter'></a><br / ><small><a href='https://www.free-website-hit-counter.com' title="Free Website Hit Counter">Free website hit counter</a></small></div>
-```

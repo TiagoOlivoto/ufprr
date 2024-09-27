@@ -53,7 +53,6 @@ data <-
 ```{r echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE}
 data$z <- data$x * data$y
 df <- subset(data, z < 10)
-df <- df[, 3]
 sqr_dat <- sqrt(df$z)
 mean_sqrt <- mean(sqr_dat)
 mean_sqrt
@@ -156,7 +155,7 @@ df |> select(contains("PLANT"))
 
 ```
 
--   `matches()`: corresponde a uma expressão regular
+- `matches()`: corresponde a uma expressão regular
 
 Seleções mais sofisticadas podem ser feitas usando [`matches()`](https://tidyselect.r-lib.org/reference/select_helpers.html). Supondo que gostaríamos de selecionar as variáveis que começam com "A" e tem a segunda letra entre "A" e "M", usaríamos algo como
 
@@ -274,16 +273,4 @@ maize %>%
 
 
 {{< video https://www.youtube.com/embed/GN4ipJWqWjs >}}
-
-
-# Desafio
-
-::: callout-important
-## 
-
--   Crie uma variável chamada `MGRA_kg` qual será o resultado em quilogramas da massa de grãos.
--   Selecione somente as colunas `HIB`, `AMB`, `REP` e `MGRA_Kg`.
--   Selecione somente as cinco linhas com maior valor de `MGRA_Kg`.
--   Compute os valores máximos, mínimos e a média destas cinco observações.
-:::
 

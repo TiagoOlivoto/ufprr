@@ -124,14 +124,10 @@ Quem trabalha com excel muito provavelmente já utilizou a função `=CONCAT`, q
 
 [![Exemplo da função unite(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf](figs/unite.png){alt="Exemplo da função pivot_longer(). Fonte: https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf"}](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf)
 
+
 Vamos considerar que queiramos unir as colunas HIBRIDO e BLOCO do conjunto `dflong` em uma única coluna, chamada NÍVEL. Esta união é dada por
 
 ```{r}
-dflong |> 
-  unite(HIBRIDO, BLOCO, col = "NIVEL") |> 
-  separate(NIVEL, into = c("HIBRIDO", "BLOCO")) |> 
-  head()
-
 dflong |> 
   unite("NIVEL", HIBRIDO:BLOCO) |> 
   head()
@@ -196,7 +192,6 @@ long |>
 
 
 
-
 # Juntar
 
 É raro que uma análise de dados envolva apenas uma única tabela de dados. Na prática, diversas tabela podem existir e ferramentas flexíveis para combiná-las são necessárias. No `dplyr`, existem uma família de funções do tipo `*_join(x, y)` que podem ser utilizadas para unir colunas de `y` a `x`, combinando linhas com base nas chaves:
@@ -241,7 +236,6 @@ df1 |> full_join(df2)
 
 
 
-# Avançado
 ## Junções com filtragem 
 
 As duas seguintes funções de filtragem filtram linhas de `x` com base na presença ou ausência de correspondências em `y`:

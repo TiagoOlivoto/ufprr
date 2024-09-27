@@ -25,12 +25,12 @@ website:
         file: 00_about.qmd
         icon: fa fa-home
     right:
-      - text: "{{< fa brands researchgate >}}"
-        href: 'https://www.researchgate.net/profile/Tiago-Olivoto'
+      - icon: browser-chrome
+        href: https://olivoto.com.br
       - icon: bi bi-github
         href: https://github.com/TiagoOlivoto
-      - text: "{{< fa brands linkedin >}}"
-        href: 'https://www.linkedin.com/in/tiago-olivoto-49060531/'
+      - icon: linkedin
+        href: https://www.linkedin.com/in/tiago-olivoto-49060531/
 
   sidebar:
     style: "docked"

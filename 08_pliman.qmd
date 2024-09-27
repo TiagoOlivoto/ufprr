@@ -20,13 +20,12 @@ library(tidyverse)
 ```
 
 
-## Importar e Exibir
-### Importar Imagens
+# Importar e Exibir
 ```{r }
 img <- image_import("folhas.jpg")
 ```
 
-### Exibir de Imagens
+# Exibir de Imagens
 Imagens individuais são exibidas com `plot()`. Para combinar imagens, é usada a função `image_combine()`. Os usuários podem inserir uma lista separada por vírgulas de objetos ou uma lista de objetos da classe Image.
 
 ```{r display1}
@@ -38,7 +37,7 @@ plot(img)
 
 
 
-## Exportar
+# Exportar
 
 Para exportar imagens para o diretório atual, use a função `image_export()`. Se uma lista de imagens for exportada, as imagens serão salvas considerando o nome e a extensão presentes na lista. Se nenhuma extensão estiver presente, as imagens serão salvas como arquivos `*.jpg`.
 
@@ -46,7 +45,6 @@ Para exportar imagens para o diretório atual, use a função `image_export()`. 
 image_export(img, "img_exported_tif.tif")
 
 ```
-
 
 
 # Princípios da análise de imagens
@@ -112,6 +110,7 @@ sapply(n, function(x){
   draw_n_tagon(x) |> poly_area()
 })
 ```
+
 
 ### Contorno
 ```{r}
@@ -370,6 +369,7 @@ vals <-
 # Note que os valores são medianos para a parcela inteira
 head(vals)
 ```
+
 
 ## A Função `mosaic_analyze()`
 

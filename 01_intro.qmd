@@ -181,20 +181,4 @@ exp(100) # exponencial
 [![Canal do Prof. Alcinei](figs/alcinei.jpg)](https://www.youtube.com/channel/UCDGyvLCJnv9RtTY1YMBMVNQ)
 :::
 
-# Homework
-
-::: callout-important
-## Meu primeiro relatório em R
-
--   Utilizando o RStudio, crie um documento em formato quarto, salve em uma pasta de sua preferência.
--   Neste relatório, apresente os comandos para instalação de dois pacotes que acreditas serem de utilidade em sua área de estudo.
--   Descreva brevemente os pacotes instalados
-:::
-
 {{< video https://www.youtube.com/embed/MO9jPS1xZdQ >}}
-
-```{=html}
-
-
-<div align='center'><a href='https://www.free-website-hit-counter.com'><img src='https://www.free-website-hit-counter.com/c.php?d=9&id=138588&s=2' border='0' alt='Free Website Hit Counter'></a><br / ><small><a href='https://www.free-website-hit-counter.com' title="Free Website Hit Counter">Free website hit counter</a></small></div>
-```

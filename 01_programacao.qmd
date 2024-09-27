@@ -10,14 +10,14 @@ Neste material, serão vistos conceitos importantes envolvidos na programação 
 
 R é uma linguagem orientada a objetos: um objeto em R é qualquer coisa (constantes, estruturas de dados, funções, gráficos) que podem ser atribuídas a uma variável. Os principais objetos usados ​​para armazenar valores numéricos reais ou complexos, valores lógicos ou caracteres são:
 
--   Vetores: arrays unidimensionais usados ​​para armazenar dados de coleção do mesmo modo
-    -   Vetores Numéricos (modo: numérico)
-    -   Vetores Complexos (modo: complexo)
-    -   Vetores Lógicos (modelo: lógico)
-    -   Character Vector ou strings de texto (modo: caractere)
--   **Matrizes**: arrays bidimensionais para armazenar coleções de dados do mesmo modo. Eles são acessados ​​por dois índices inteiros.
+-   Vetores: arrays unidimensionais usados para armazenar dados de coleção do mesmo modo
+-   Vetores Numéricos (modo: numérico)
+-   Vetores Complexos (modo: complexo)
+-   Vetores Lógicos (modelo: lógico)
+-   Character Vector ou strings de texto (modo: caractere)
+-   **Matrizes**: arrays bidimensionais para armazenar coleções de dados do mesmo modo. Eles são acessados por dois índices inteiros.
 -   **Arrays**: semelhantes a matrizes, mas podem ser multidimensionais (mais de duas dimensões)
--   **Fatores**: vetores de variáveis ​​categóricas destinados a agrupar os componentes de outro vetor com o mesmo tamanho
+-   **Fatores**: vetores de variáveis categóricas destinados a agrupar os componentes de outro vetor com o mesmo tamanho
 -   **Listas**: coleção ordenada de objetos, onde os elementos podem ser de diferentes tipos
 -   **Data Frames**: generalização de matrizes onde diferentes colunas podem armazenar dados de modos diferentes.
 
@@ -144,7 +144,7 @@ typeof(x9)
 (x10 <- matrix(1:15, nrow = 5, ncol = 3, byrow = TRUE))
 ```
 
-Para selecionar elementos, linhas e colunas da matriz com \[ \] utiliza-se um sistema de coordenadas:
+Para selecionar elementos, linhas e colunas da matriz com `[]` utiliza-se um sistema de coordenadas:
 
 ```{r, echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE}
 x9[2, 3] # seleciona o elemento que está na linha 2 e coluna 3
@@ -152,16 +152,14 @@ x9[, 2] # "," indica que todas as linhas serão selecionadas na coluna 2
 x9[1, ] # "," indica que todas as colunas serão selecionadas na linha 1
 ```
 
-::: callout-tip
-Note que matrizes ficam armazenadas no ambiente glogal em "Data", não "Values".
-:::
+
 
 ## Data Frame
 
 A função `data.frame()` cria estruturas cujas colunas podem ser valores numéricos ou caracteres. É uma estrutura muito utilizada em funções do *software R*.
 
 ```{r, echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE}
-x10 <- data.frame(arvore = paste0("O", 1:5),
+x10 <- data.frame(arvore = paste0("A", 1:5),
                   altura = c(4, 4.6, 3.8, 5, 4.1))
 class(x10)
 print(x10)
@@ -190,12 +188,10 @@ data.frame(x = 1:5,
 
 ```{r, echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE}
 # Criando um tibble
-tib1 <- 
-  tibble(x = 1:5,
-         y = 2:6,
-         z = x ^ 2 + y)
+tibble(x = 1:5,
+       y = 2:6,
+       z = x ^ 2 + y)
 
-tib1[, 1]
 ```
 
 ## Lista
@@ -221,6 +217,7 @@ list1[[3]]
 A programação é uma habilidade transversal necessária para todo o trabalho de ciência de dados (usando R ou não!). Resumidamente, a programação produz o código, e o código é uma ferramenta de comunicação entre você e o computado.
 :::
 
+
 ## Funções
 
 Uma das melhores maneiras de tornar o código mais eficiente é escrever funções. As funções são a base da linguagem *R*. Através de *argumentos* que são indicados em `funtion()`, uma expressão (ou série de expressões) é resolvida e um valor (ou um conjunto de valores) é retornado. As funções permitem automatizar tarefas comuns de uma maneira mais poderosa e geral do que 'copiar e colar'. Escrever uma função tem três grandes vantagens sobre o uso de copiar e colar:
@@ -240,78 +237,25 @@ basal_area <- function(dbh, is_cm = TRUE) {
   if(any(dbh <= 0)) {
     stop("Todos os diâmetros devem ser números positivos.")
   }
-  # Calcula a área basal de cada árvore (π * (dbh/2)^2) e converte cm² para m²
+  # Calcula a área basal de cada árvore (π * (dbh/2)^2)
   ba_per_tree <- pi * (dbh / 2)^2
   
   # Soma a área basal de todas as árvores
   total_ba <- sum(ba_per_tree)
-  
   # Retorna a área basal total em metros quadrados ou centímetros quadrados
   if(is_cm) {
     return(total_ba)
   } else {
     return(total_ba / 10000)
   }
-  return(total_ba)
 }
 
 # Exemplo de uso com um vetor de valores de DBH (em cm)
 
-basal_area(tree_dbh)
-basal_area(tree_dbh, is_cm = FALSE)
+basal_area(dbh)
+basal_area(dbh, is_cm = FALSE)
 
 
-
-# EXEMPLO 3: fórmula de Bháskara
-# Encontrar as raízes de uma equação de segundo grau
-# Plotar a curva
-bhaskara <- function(a, b, c, plot = TRUE){ 
-  # argumentos a, b e c são 
-  dentro_raiz <- b^2 - 4 * a * c
-  if(dentro_raiz < 0){
-    stop("Sem solução real")
-  }
-  delta <- sqrt(dentro_raiz)
-  x1 <- (-b + delta) / (2 * a)
-  x2 <- (-b - delta) / (2 * a)
-  minx <- min(x1, x2)
-  min_exp <- ifelse(minx < 0, minx + minx * 0.2, minx - minx * 0.2)
-  maxx <- max(x1, x2)
-  
-  # checa se precisa plotar
-  if(isTRUE(plot)){
-    # plot.new()
-    # curva
-    curve(a * x^2 + b * x + c, 
-          xlim = c(min_exp,
-                   maxx + maxx * 0.2))
-    # pontos nas raízes
-    points(x = c(x1, x2),
-           y = c(0, 0),
-           col = "black",
-           pch = 19)
-    # linha no zero
-    abline(h=0, lty=2)
-  }
-  
-  # calcula o x e y do vértice
-  x_vert <- round(-b / (2*a), 3)
-  print(paste0("x: ", x_vert))
-  y_vert <- round(a * x_vert^2 + b * x_vert + c , 3)
-  print(paste0("y: ", y_vert))
-  
-  # plota os pontos do vértice
-  points(x = x_vert,
-         y = y_vert,
-         col = "red",
-         pch = 19)
-  # retorna as raízes
-  print(paste0("Raízes: S{", x1, ";", x2, "}"))
-}
-
-bhaskara(1, -2, -3)
-bhaskara(-1, 4, -3)
-bhaskara(1, 2, -8)
 
 
 ```
@@ -329,12 +273,12 @@ Você consegue habilitar o pipe nativo no Rstudio, indo em *Tools \> Global Opti
 
 Para ver por que o pipe é tão útil, vamos explorar algumas maneiras de escrever o mesmo código. Para isso, considere as seguintes (e simples) operações.
 
-> -   Crie uma função que computa o quadrado do desvio de cada termo em relação à média.
-> -   Crie um vetor com 10 dados aleatórios de uma distribuição normal com média 10 e desvio padrão 2, utilizando `rnorm().`
-> -   Eleve o vetor numérico ao quadrado
-> -   Some os valores
-> -   divida por n - 1
-> -   Armazene no objeto var_amo
+-   Crie uma função que computa o quadrado do desvio de cada termo em relação à média.
+-   Crie um vetor com 10 dados aleatórios de uma distribuição normal com média 10 e desvio padrão 2, utilizando `rnorm().`
+-   Eleve o vetor numérico ao quadrado
+-   Some os valores
+-   divida por n - 1
+-   Armazene no objeto var_amo
 
 ```{r}
 # função para computar o quadrado dos desvios
@@ -354,7 +298,7 @@ set.seed(1) # garante reprodutibilidade
 Note que a mesma operação pode ser realizada se você aninhar as funções.
 
 ```{r}
-(var_amo <- sum(sum(quadrado_desvio(x))) / 9)
+(var_amo <- sum(quadrado_desvio(x)) / 9)
 ```
 
 Agora, utilizando o pipe, note como o código fica muito mais claro, pois as indicações são feitas na ordem em que elas precisam ser executadas.
@@ -376,12 +320,11 @@ var(x)
 :::
 
 
-# Avançado
-## Loops {#loops}
+# Loops {#loops}
 
 Reescrever um código muitas vezes por necessidade de repetir um determinado procedimento seria bastante trabalhoso, além de precisarmos de mais tempo para isso e estarmos mais propensos à erros, como por exemplo, esquecer de trocar o nome de uma variável, ou um coeficiente. Por isso, o R tem algumas funções que fazem essas repetições para nós. Isso é muito comum e pode ser facilmente implementado pela função `for()`, `while()` e `repeat()`.
 
-### for()
+## for()
 
 A função `for()` repete o código indicado dentro de `{}` *n* vezes, sendo *n* o comprimento da sequência dentro dos parênteses.
 
@@ -393,7 +336,7 @@ for (i in 1:j){
 }
 ```
 
-### `while`()
+## `while`()
 
 A função `while()` (que significa enquanto) repete o código dentro de `{}` enquanto alguma condição for verdadeira. Isso é útil, por exemplo, para ser aplicada em um modelo que contém um algoritmo iterativo que necessita de convergência. O modo é iterado infinitas vezes até a convergência ser atingida, ou até uma condição (por exemplo, após um número máximo de iterações) ser atingida.
 
@@ -408,7 +351,7 @@ while (i <= 5){
 Note que os dois últimos exemplos apresentam o mesmo resultado: o R vai retornar uma sequência `i` sendo `i = 1:5`, onde cada número será o resultado da multiplicação $i \times 2$. No caso `while()`, precisamos mudar o valor de `i` para que a sequência continue até que a condição `(i <= 5)` for verdadeira. Em adição, precisamos declarar a variável (`i = 1`) antes para que o R possa testar a condição expressa dentro dos parênteses. No caso do `for()`, a sequência progride sem precisarmos fazer isso manualmente.
 
 
-### `repeat`()
+## `repeat`()
 
 No último exemplo, utilizando `repeat()`, o R repetirá o código dentro de `{}` sem condições. Com isso, precisamos utilizar a combinação das funções `if()` e `break()` para informar ao programa quando o código deve parar de ser repetido.
 
@@ -423,7 +366,6 @@ repeat {
 }
 ```
 
-### 
 
 Imprimir números no console foi uma boa maneira de conhecermos como o procedimento *for-loop* funciona no R. Em resumo: podemos chegar no mesmo resultado utilziando três abordagens distintas. Mas vamos dar um pouco mais de aplicabilidade aos procedimentos *for-loop*. Imagine que temos este simples data.frame:
 
@@ -509,25 +451,7 @@ O padrão de fazer um *loop* sobre um vetor, fazer algo em cada elemento e salva
 library(purrr)
 
 map(df, mean) # retorna uma lista
-map_dbl(df, mean) # retorna um vetor double
+map_df(df, mean) # retorna um data frame
 ```
 
 
-
-::: callout-tip
-
-## Homework
-
--   Criar um data frame com 10 observações e 3 variáveis quantitativas;
--   Converta o data frame para uma matriz;
--   Use alguma das abordagens vistas (sapply, for, apply, etc) para computar a média de cada variável na matriz, armazenando-a em um vetor;
--   Diminua de cada observação a média da variável;
--   Eleve os desvios ao quadrado;
--   Some os desvios ao quadrado;
--   Divida pelo número de observações - 1
-:::
-
-```{=html}
-
-<div align='center'><a href='https://www.free-website-hit-counter.com'><img src='https://www.free-website-hit-counter.com/c.php?d=9&id=141634&s=2' border='0' alt='Free Website Hit Counter'></a><br / ><small><a href='https://www.free-website-hit-counter.com' title="Free Website Hit Counter">Free website hit counter</a></small></div>
-```
