@@ -22,7 +22,14 @@ library(tidyverse)
 
 # Importar e Exibir
 ```{r }
-img <- image_import("folhas.jpg")
+mats <- list.files(pattern = "mat")
+list <- lapply(mats, rio::import)
+img <- as_image(unlist(list), dim = c(480, 360, 3), colormode = "Color")
+
+
+
+# importar uma imagem
+img <- image_import("E28_3300.jpg", resize = 30)
 ```
 
 # Exibir de Imagens
